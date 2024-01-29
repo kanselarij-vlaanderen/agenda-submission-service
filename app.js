@@ -154,12 +154,21 @@ app.post('/meetings/:id/submit', async function(req, res, next) {
   });
 
   /**
-   * Pipe dream: instead of responding with nothing, we should tally up all the
-   * new records and return them from this call so that the frontend can load
-   * them and "know" that they exist, so that we're not at risk of being behind
-   * the cache invalidation.
+   * Pipe dream: instead of sleeping and responding with one thing, we should
+   * tally up all the new records and return them from this call so that the
+   * frontend can load them and "know" that they exist, so that we're not at
+   * risk of being behind the cache invalidation. This is the way interactions
+   * with the resources service work. It's not inherently faster at cache
+   * resolution, it just tells the frontend what has been made and the frontend
+   * then doesn't try to fetch that data.
    */
-  return res.sendStatus(204);
+  await new Promise((resolve) => setTimeout(resolve, 4000));
+  return res.status(200).send({
+    data: {
+      type: 'agendaitems',
+      id: agendaitem.id,
+    }
+  });
 });
 
 app.use(errorHandler);
