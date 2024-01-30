@@ -95,7 +95,7 @@ app.post('/meetings/:id/submit', async function(req, res, next) {
     uri: `${URI_BASES.decisionActivity}${decisionActivityId}`,
     startDate: meeting.plannedStart.at(0),
     subcase: subcaseUri,
-    secretary: meeting.secretary.at(0),
+    secretary: meeting.secretary?.at(0),
     ...(subcase.agendaitemType.at(0) === CONCEPTS.AGENDA_ITEM_TYPES.ANNOUNCEMENT ? { decisionResultCode: CONCEPTS.DECISION_RESULT_CODES.ACKNOWLEDGED } : null)
   };
 
