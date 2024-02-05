@@ -16,6 +16,8 @@ app.get('/', function(_req, res) {
 app.post('/meetings/:id/submit', async function(req, res, next) {
   const meetingId = req.params.id;
   const subcaseUri = req.body.subcase;
+  const formallyOk = req.body.formallyOk;
+  const privateComment = req.body.privateComment;
 
   if (!meetingId) {
     return next({ message: 'Path parameter meeting ID was not set, cannot proceed', status: 400 });
@@ -118,7 +120,7 @@ app.post('/meetings/:id/submit', async function(req, res, next) {
     agenda: agenda.uri,
     title: subcase.title?.at(0),
     shortTitle: subcase.shortTitle?.at(0),
-    formallyOK: CONCEPTS.ACCEPTANCE_STATUSES.NOT_YET_OK,
+    formallyOk: formallyOk ? CONCEPTS.ACCEPTANCE_STATUSES.OK : CONCEPTS.ACCEPTANCE_STATUSES.NOT_YET_OK,
     number: agendaitemNumber,
     agendaitemType: subcase.agendaitemType.at(0),
     mandatees: subcase.mandatees,
@@ -126,6 +128,7 @@ app.post('/meetings/:id/submit', async function(req, res, next) {
     linkedPieces: subcase.linkedPieces,
     agendaActivity: agendaActivity.uri,
     treatment: treatment.uri,
+    privateComment: privateComment,
   };
 
   let newsItem;
