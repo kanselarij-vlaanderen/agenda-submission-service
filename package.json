@@ -1,0 +1,14 @@
+{
+  "name": "agenda-submission-service",
+  "version": "1.0.0",
+  "description": "Microservice providing endpoints to sumbit a subcase for a meeting",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kanselarij-vlaanderen/agenda-submission-service.git"
+  },
+  "author": "redpencil.io",
+  "license": "MIT",
+  "dependencies": {
+
+  }
+}

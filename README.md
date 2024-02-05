@@ -33,7 +33,9 @@ Submit the subcase onto the latest agenda of the meeting.
 
 ``` json
 {
-  "subcase": "http://themis.vlaanderen.be/id/procedurestap/XXXXXX"
+  "subcase": "http://themis.vlaanderen.be/id/procedurestap/XXXXXX",
+  "formallyOk": true,
+  "privateComment": "Private comment to be placed on the created agendaitem"
 }
 ```
 
