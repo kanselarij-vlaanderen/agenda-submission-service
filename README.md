@@ -11,6 +11,8 @@ Add the following snippet to your `docker-compose.yml`:
 ``` yaml
 agenda-submission:
   image: kanselarij/agenda-submission-service
+  environment:
+    CACHE_CLEAR_TIMEOUT: 5000 # adds a timeout before sending a response, to give the cache time to clear.
 ```
 
 Add rules to the dispatcher configuration file to dispatch requests to this service:

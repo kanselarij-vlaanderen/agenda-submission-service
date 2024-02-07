@@ -9,6 +9,8 @@ import { isSubcaseOnAgenda } from './lib/subcase';
 import { getRelatedResources } from './lib/data-fetching';
 import { persistRecords } from './lib/data-persisting';
 
+const cacheClearTimeout = process.env.CACHE_CLEAR_TIMEOUT || 5000;
+
 app.get('/', function(_req, res) {
   res.send('The agenda-submission-service is alive!');
 });
@@ -165,7 +167,7 @@ app.post('/meetings/:id/submit', async function(req, res, next) {
    * resolution, it just tells the frontend what has been made and the frontend
    * then doesn't try to fetch that data.
    */
-  await new Promise((resolve) => setTimeout(resolve, 4000));
+  await new Promise((resolve) => setTimeout(resolve, cacheClearTimeout));
   return res.status(200).send({
     data: {
       type: 'agendaitems',
