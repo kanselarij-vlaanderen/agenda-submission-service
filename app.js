@@ -153,7 +153,7 @@ app.post('/meetings/:id/submit', async function(req, res, next) {
         title: agendaitem.shortTitle ?? agendaitem.title,
         htmlContent: agendaitem.title,
         finished: true,
-        inNewsletter: true,
+        inNewsletter: subcase.confidential?.at(0) ? false : true,
       };
     }
 
