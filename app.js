@@ -13,6 +13,10 @@ const cacheClearTimeout = process.env.CACHE_CLEAR_TIMEOUT || 5000;
 
 const locks = new Set();
 
+function isTruthy(value) {
+  return [true, "true"].includes(value);
+}
+
 app.get('/', function(_req, res) {
   res.send('The agenda-submission-service is alive!');
 });
@@ -153,7 +157,7 @@ app.post('/meetings/:id/submit', async function(req, res, next) {
         title: agendaitem.shortTitle ?? agendaitem.title,
         htmlContent: agendaitem.title,
         finished: true,
-        inNewsletter: subcase.confidential?.at(0) ? false : true,
+        inNewsletter: isTruthy(subcase.confidential?.at(0)) ? false : true,
       };
     }
 
