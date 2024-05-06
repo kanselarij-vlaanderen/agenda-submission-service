@@ -173,7 +173,9 @@ app.post('/meetings/:id/submit', async function(req, res, next) {
       signFlows,
     });
 
-    await reorderAgendaitems(agenda.uri, agendaitem.agendaitemType);
+    if (agendaitem.agendaitemType !== CONCEPTS.AGENDA_ITEM_TYPES.ANNOUNCEMENT) {
+      await reorderAgendaitems(agenda.uri, agendaitem.agendaitemType);
+    }
 
     /**
     * Pipe dream: instead of sleeping and responding with one thing, we should
