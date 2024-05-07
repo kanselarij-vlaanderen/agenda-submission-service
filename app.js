@@ -8,6 +8,7 @@ import { isMeetingClosed } from './lib/meeting';
 import { isSubcaseOnAgenda } from './lib/subcase';
 import { getRelatedResources } from './lib/data-fetching';
 import { persistRecords } from './lib/data-persisting';
+import { reorderAgendaitems } from './lib/agendaitem-order';
 
 const cacheClearTimeout = process.env.CACHE_CLEAR_TIMEOUT || 5000;
 
@@ -171,6 +172,10 @@ app.post('/meetings/:id/submit', async function(req, res, next) {
       agenda,
       signFlows,
     });
+
+    if (agendaitem.agendaitemType !== CONCEPTS.AGENDA_ITEM_TYPES.ANNOUNCEMENT) {
+      await reorderAgendaitems(agenda.uri, agendaitem.agendaitemType);
+    }
 
     /**
     * Pipe dream: instead of sleeping and responding with one thing, we should
