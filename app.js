@@ -31,7 +31,7 @@ app.get('/open-meetings', async function(req, res, next) {
   const openMeetings = await getOpenMeetings();
   return res.status(200).send({
     data: openMeetings.map(
-      ({ uri, id, agendaNumber }) => ({ id, type: 'meetings', attributes: { uri, agendaNumber }}))
+      (meeting) => ({ id: meeting.id, type: 'meetings', attributes: { ...meeting } }))
   });
 });
 
