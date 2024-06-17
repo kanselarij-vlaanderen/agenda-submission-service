@@ -9,6 +9,7 @@ import { isSubcaseOnAgenda } from './lib/subcase';
 import { getRelatedResources } from './lib/data-fetching';
 import { persistRecords } from './lib/data-persisting';
 import { reorderAgendaitems } from './lib/agendaitem-order';
+import { getAgenda, isApprovedAgenda } from './lib/agenda';
 
 const cacheClearTimeout = process.env.CACHE_CLEAR_TIMEOUT || 5000;
 
@@ -195,6 +196,34 @@ app.post('/meetings/:id/submit', async function(req, res, next) {
     });
   } finally {
     locks.delete(subcaseUri);
+  }
+});
+
+app.post('/agendas/:id/reorder', async function (req, res, next) {
+  const agendaId = req.params.id;
+  if (!agendaId) {
+    return next({ message: 'Path parameter agenda ID was not set, cannot proceed', status: 400 });
+  }
+
+  if (locks.has(agendaId)) {
+    return next({ message: "The agenda's agenda items are currently being reordered, reordering process cannot be started now", status: 409 });
+  } else {
+    locks.add(agendaId);
+  }
+
+  try {
+    if (await isApprovedAgenda(agendaId)) {
+      return next({ message: 'The agenda is already approved, its agenda items cannot be reordered', status: 400 });
+    }
+
+    const agenda = await getAgenda(agendaId);
+
+    await reorderAgendaitems(agenda, CONCEPTS.AGENDA_ITEM_TYPES.NOTA);
+
+    await new Promise((resolve) => setTimeout(resolve, cacheClearTimeout));
+    return res.sendStatus(201);
+  } finally {
+    locks.delete(agendaId);
   }
 });
 
