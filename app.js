@@ -4,11 +4,12 @@ import {
   uuid,
 } from 'mu';
 import { CONCEPTS, URI_BASES } from './constants';
-import { isMeetingClosed } from './lib/meeting';
+import { getOpenMeetings, isMeetingClosed, submitSubmissionOnMeeting } from './lib/meeting';
 import { isSubcaseOnAgenda } from './lib/subcase';
 import { getRelatedResources } from './lib/data-fetching';
 import { persistRecords } from './lib/data-persisting';
 import { reorderAgendaitems } from './lib/agendaitem-order';
+import { isLoggedIn } from './lib/session';
 
 const cacheClearTimeout = process.env.CACHE_CLEAR_TIMEOUT || 5000;
 
@@ -20,6 +21,46 @@ function isTruthy(value) {
 
 app.get('/', function(_req, res) {
   res.send('The agenda-submission-service is alive!');
+});
+
+app.get('/open-meetings', async function(req, res, next) {
+  const sessionUri = req.headers['mu-session-id']
+  if (!(await isLoggedIn(sessionUri))) {
+    return next({ message: 'Unauthorized access to this endpoint is not permitted', status: 401 });
+  }
+  const openMeetings = await getOpenMeetings();
+  return res.status(200).send({
+    data: openMeetings.map(
+      (meeting) => ({ id: meeting.id, type: 'meetings', attributes: { ...meeting } }))
+  });
+});
+
+app.post('/meetings/:id/submit-submission', async function(req, res, next) {
+  const submissionUri = req.body.submission;
+
+  if (locks.has(submissionUri)) {
+    return next({ message: 'The subcase is currently being submitted, submission process cannot be started now', status: 409 });
+  } else {
+    locks.add(submissionUri);
+  }
+
+  try {
+    const meetingId = req.params.id;
+    const meetingUri = req.body.meeting;
+
+    if (!meetingId) {
+      return next({ message: 'Path parameter meeting ID was not set, cannot proceed', status: 400 });
+    }
+
+    if (!submissionUri) {
+      return next({ message: 'Body does not contain a "submission" field, cannot proceed', status: 400 });
+    }
+
+    await submitSubmissionOnMeeting(submissionUri, meetingUri);
+    return res.status(201).send();
+  } finally {
+    locks.delete(submissionUri);
+  }
 });
 
 app.post('/meetings/:id/submit', async function(req, res, next) {
