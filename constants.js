@@ -22,8 +22,12 @@ const CONCEPTS = {
     OK: 'http://kanselarij.vo.data.gift/id/concept/goedkeurings-statussen/CC12A7DB-A73A-4589-9D53-F3C2F4A40636',
   },
   AGENDA_ITEM_TYPES: {
+    NOTA: 'http://themis.vlaanderen.be/id/concept/agendapunt-type/dd47a8f8-3ad2-4d5a-8318-66fc02fe80fd',
     ANNOUNCEMENT: 'http://themis.vlaanderen.be/id/concept/agendapunt-type/8f8adcf0-58ef-4edc-9e36-0c9095fd76b0',
   },
+  AGENDA_STATUSES: {
+    APPROVED: 'http://themis.vlaanderen.be/id/concept/agenda-status/fff6627e-4c96-4be1-b483-8fefcc6523ca',
+  }
 };
 
 const URI_BASES = {
