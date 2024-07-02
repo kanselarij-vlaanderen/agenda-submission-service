@@ -75,7 +75,7 @@ app.post('/meetings/:id/submit', async function(req, res, next) {
 
   try {
     const meetingId = req.params.id;
-    const formallyOk = req.body.formallyOk;
+    const formallyOkStatus = req.body.formallyOkStatus;
     const privateComment = req.body.privateComment;
 
     if (!meetingId) {
@@ -179,7 +179,7 @@ app.post('/meetings/:id/submit', async function(req, res, next) {
       agenda: agenda.uri,
       title: subcase.title?.at(0),
       shortTitle: subcase.shortTitle?.at(0),
-      formallyOk: formallyOk ? CONCEPTS.ACCEPTANCE_STATUSES.OK : CONCEPTS.ACCEPTANCE_STATUSES.NOT_YET_OK,
+      formallyOk: formallyOkStatus,
       number: agendaitemNumber,
       agendaitemType: subcase.agendaitemType.at(0),
       mandatees: subcase.mandatees,
