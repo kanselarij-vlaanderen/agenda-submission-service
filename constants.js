@@ -39,8 +39,14 @@ const URI_BASES = {
   agendaitem: 'http://themis.vlaanderen.be/id/agendapunt/',
 };
 
+const GRAPHS = {
+  KANSELARIJ: 'http://mu.semte.ch/graphs/organizations/kanselarij',
+  SUBMISSION: 'http://mu.semte.ch/graphs/system/submissions',
+}
+
 export {
   TYPES,
   CONCEPTS,
   URI_BASES,
+  GRAPHS,
 }
