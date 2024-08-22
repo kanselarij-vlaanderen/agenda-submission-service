@@ -58,6 +58,9 @@ app.post('/meetings/:id/submit-submission', async function(req, res, next) {
     }
 
     await submitSubmissionOnMeeting(submissionUri, meetingUri);
+
+    // cache issue, submission.meeting is null but data exists, cache reset works
+    await new Promise((resolve) => setTimeout(resolve, 2000));
     return res.status(201).send();
   } finally {
     locks.delete(submissionUri);
