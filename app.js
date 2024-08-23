@@ -89,6 +89,10 @@ app.post('/meetings/:id/submit', async function(req, res, next) {
       return next({ message: 'Body does not contain a "subcase" field, cannot proceed', status: 400 });
     }
 
+    if (!formallyOkStatus) {
+      return next({ message: 'Body does not contain a "formally ok/nok" field, cannot proceed', status: 400 });
+    }
+
     if (await isMeetingClosed(meetingId)) {
       return next({ message: 'This meeting is already closed, the provided subcase cannot be submitted to it', status: 400 });
     }
