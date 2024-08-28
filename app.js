@@ -4,7 +4,7 @@ import {
   uuid,
 } from 'mu';
 import { CONCEPTS, URI_BASES } from './constants';
-import { getOpenMeetings, isMeetingClosed, submitSubmissionOnMeeting } from './lib/meeting';
+import { getOpenMeetings, getMeetingForSubmission, isMeetingClosed, submitSubmissionOnMeeting } from './lib/meeting';
 import { isSubcaseOnAgenda } from './lib/subcase';
 import { getRelatedResources } from './lib/data-fetching';
 import { persistRecords } from './lib/data-persisting';
@@ -36,6 +36,22 @@ app.get('/open-meetings', async function(req, res, next) {
   });
 });
 
+app.get('/submissions/:id/for-meeting', async function(req, res, next) {
+  const sessionUri = req.headers['mu-session-id']
+  if (!(await isLoggedIn(sessionUri))) {
+    return next({ message: 'Unauthorized access to this endpoint is not permitted', status: 401 });
+  }
+  const submissionId = req.params.id;
+  if (!submissionId) {
+    return next({ message: 'Path parameter submission ID was not set, cannot proceed', status: 400 });
+  }
+
+  const meeting = await getMeetingForSubmission(submissionId);
+  return res.status(200).send({
+    data: { id: meeting.id, type: 'meetings', attributes: meeting }
+  });
+});
+
 app.post('/meetings/:id/submit-submission', async function(req, res, next) {
   const submissionUri = req.body.submission;
 
@@ -51,6 +67,10 @@ app.post('/meetings/:id/submit-submission', async function(req, res, next) {
 
     if (!meetingId) {
       return next({ message: 'Path parameter meeting ID was not set, cannot proceed', status: 400 });
+    }
+
+    if (!meetingUri) {
+      return next({ message: 'Body does not contain a "meeting" field, cannot proceed', status: 400 });
     }
 
     if (!submissionUri) {
