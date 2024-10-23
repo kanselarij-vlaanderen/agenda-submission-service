@@ -15,6 +15,7 @@ const TYPES = {
 const CONCEPTS = {
   DECISION_RESULT_CODES: {
     POSTPONED: 'http://themis.vlaanderen.be/id/concept/beslissing-resultaatcodes/a29b3ffd-0839-45cb-b8f4-e1760f7aacaa',
+    RETRACTED: 'http://themis.vlaanderen.be/id/concept/beslissing-resultaatcodes/453a36e8-6fbd-45d3-b800-ec96e59f273b',
     ACKNOWLEDGED: 'http://themis.vlaanderen.be/id/concept/beslissing-resultaatcodes/9f342a88-9485-4a83-87d9-245ed4b504bf',
   },
   ACCEPTANCE_STATUSES: {
