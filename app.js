@@ -3,14 +3,14 @@ import {
   errorHandler,
   uuid,
 } from 'mu';
-import { CONCEPTS, URI_BASES } from './constants';
+import { CONCEPTS, ROLES, URI_BASES } from './constants';
 import { getOpenMeetings, getMeetingForSubmission, isMeetingClosed, submitSubmissionOnMeeting } from './lib/meeting';
 import { isSubcaseOnAgenda } from './lib/subcase';
 import { getRelatedResources } from './lib/data-fetching';
 import { persistRecords } from './lib/data-persisting';
 import { reorderAgendaitems } from './lib/agendaitem-order';
-import { getAgenda, isApprovedAgenda } from './lib/agenda';
-import { isLoggedIn } from './lib/session';
+import { getAgenda, getAgendasForSubcase, isApprovedAgenda } from './lib/agenda';
+import { isLoggedIn, sessionHasRole } from './lib/session';
 
 const cacheClearTimeout = process.env.CACHE_CLEAR_TIMEOUT || 5000;
 
@@ -33,6 +33,30 @@ app.get('/open-meetings', async function(req, res, next) {
   return res.status(200).send({
     data: openMeetings.map(
       (meeting) => ({ id: meeting.id, type: 'meetings', attributes: { ...meeting } }))
+  });
+});
+
+app.get('/subcases/:id/agendas', async function(req, res, next) {
+  const sessionUri = req.headers['mu-session-id']
+  if (!(await isLoggedIn(sessionUri))) {
+    return next({ message: 'Unauthorized access to this endpoint is not permitted', status: 401 });
+  }
+  const subcaseId = req.params.id;
+  if (!subcaseId) {
+    return next({ message: 'Path parameter subcase ID was not set, cannot proceed', status: 400 });
+  }
+  // Get all [meeting, agenda, agendaitem], both open and closed, related to this submission
+  // Used in the frontend to show when a subcase is on a future agenda, but only for cabibnets
+  const useSudo = await sessionHasRole(sessionUri, [ROLES.MINISTER, ROLES.KABINET_DOSSIERBEHEERDER]);
+  const relatedAgendas = await getAgendasForSubcase(subcaseId, useSudo);
+
+  for (const record of relatedAgendas) {
+    record.visible = !!(await getAgenda(record.agendaId));
+  }
+
+  return res.status(200).send({
+    data: relatedAgendas.map(
+      (record) => ({ id: record.agendaId, type: 'agendas', attributes: { ...record } }))
   });
 });
 
