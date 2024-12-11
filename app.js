@@ -71,9 +71,12 @@ app.get('/submissions/:id/for-meeting', async function(req, res, next) {
   }
 
   const meeting = await getMeetingForSubmission(submissionId);
-  return res.status(200).send({
-    data: { id: meeting.id, type: 'meetings', attributes: meeting }
-  });
+  if (meeting?.id) {
+    return res.status(200).send({
+      data: { id: meeting.id, type: 'meetings', attributes: meeting }
+    });
+  }
+  return next({ message: 'The submission is not submitted to any meeting, please contact the administrator', status: 404 }); 
 });
 
 app.post('/meetings/:id/submit-submission', async function(req, res, next) {
