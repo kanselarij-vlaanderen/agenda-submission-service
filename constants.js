@@ -45,9 +45,15 @@ const GRAPHS = {
   SUBMISSION: 'http://mu.semte.ch/graphs/system/submissions',
 }
 
+const ROLES = {
+  MINISTER: 'http://themis.vlaanderen.be/id/gebruikersrol/01ace9e0-f810-474e-b8e0-f578ff1e230d',
+  KABINET_DOSSIERBEHEERDER: 'http://themis.vlaanderen.be/id/gebruikersrol/6bcebe59-0cb5-4c5e-ab40-ca98b65887a4',
+}
+
 export {
   TYPES,
   CONCEPTS,
   URI_BASES,
   GRAPHS,
+  ROLES,
 }
