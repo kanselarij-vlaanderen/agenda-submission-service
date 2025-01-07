@@ -242,6 +242,7 @@ app.post('/meetings/:id/submit', async function(req, res, next) {
       agendaActivity: agendaActivity.uri,
       treatment: treatment.uri,
       privateComment: privateComment,
+      isApproval: false,
     };
 
     let newsItem;
