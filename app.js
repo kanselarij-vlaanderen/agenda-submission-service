@@ -47,7 +47,8 @@ app.get('/subcases/:id/agendas', async function(req, res, next) {
   }
   // Get all [meeting, agenda, agendaitem], both open and closed, related to this submission
   // Used in the frontend to show when a subcase is on a future agenda, but only for cabibnets
-  const useSudo = await sessionHasRole(sessionUri, [ROLES.MINISTER, ROLES.KABINET_DOSSIERBEHEERDER]);
+  // FYI: Admin is listed here in case of impersonation. the role would be admin but the data would come from a different role
+  const useSudo = await sessionHasRole(sessionUri, [ROLES.ADMIN, ROLES.MINISTER, ROLES.KABINET_DOSSIERBEHEERDER]);
   const relatedAgendas = await getAgendasForSubcase(subcaseId, useSudo);
 
   for (const record of relatedAgendas) {
