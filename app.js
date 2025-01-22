@@ -291,6 +291,15 @@ app.post('/meetings/:id/submit', async function(req, res, next) {
         id: agendaitem.id,
       }
     });
+
+  } catch (err) {
+    // do we want to send an email here?
+    console.error(`*!!* submitting subcase ${subcaseUri} went wrong *!!*`, err);
+    const message = `Something went wrong. The subcase could not be fully submitted on the agenda.
+    There may be data inconsistencies because of it.
+    Please contact technical support before attempting again.
+    reason: ${err.message}`;
+    return next({ message: message, status: 500 });
   } finally {
     locks.delete(subcaseUri);
   }
