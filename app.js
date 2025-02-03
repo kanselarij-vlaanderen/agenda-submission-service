@@ -77,7 +77,7 @@ app.get('/submissions/:id/for-meeting', async function(req, res, next) {
       data: { id: meeting.id, type: 'meetings', attributes: meeting }
     });
   }
-  return next({ message: 'The submission is not submitted to any meeting, please contact the administrator', status: 404 }); 
+  return next({ message: 'The submission is not submitted to any meeting, please contact the administrator', status: 404 });
 });
 
 app.post('/meetings/:id/submit-submission', async function(req, res, next) {
@@ -92,6 +92,7 @@ app.post('/meetings/:id/submit-submission', async function(req, res, next) {
   try {
     const meetingId = req.params.id;
     const meetingUri = req.body.meeting;
+    const sessionUri = req.headers['mu-session-id'];
 
     if (!meetingId) {
       return next({ message: 'Path parameter meeting ID was not set, cannot proceed', status: 400 });
@@ -103,6 +104,10 @@ app.post('/meetings/:id/submit-submission', async function(req, res, next) {
 
     if (!submissionUri) {
       return next({ message: 'Body does not contain a "submission" field, cannot proceed', status: 400 });
+    }
+
+    if (!(await sessionHasRole(sessionUri, [ROLES.ADMIN, ROLES.MINISTER, ROLES.KABINET_DOSSIERBEHEERDER]))) {
+      return next({ message: 'You do not have the correct role to perform this operation', status: 401 });
     }
 
     await submitSubmissionOnMeeting(submissionUri, meetingUri);
