@@ -36,8 +36,8 @@ Submit the subcase onto the latest agenda of the meeting.
 ``` json
 {
   "subcase": "http://themis.vlaanderen.be/id/procedurestap/XXXXXX",
-  "formallyOk": true,
-  "privateComment": "Private comment to be placed on the created agendaitem"
+  "formallyOkStatus": "XXXXXX", // UUID of the formally ok status
+  "meetingId": "XXXXXX" // UUID of the meeting to submit on
 }
 ```
 
