@@ -106,7 +106,10 @@ app.post('/meetings/:id/submit-submission', async function(req, res, next) {
       return next({ message: 'Body does not contain a "submission" field, cannot proceed', status: 400 });
     }
 
-    if (!(await sessionHasRole(sessionUri, [ROLES.ADMIN, ROLES.MINISTER, ROLES.KABINET_DOSSIERBEHEERDER]))) {
+    // Admin > when using impersonation as minister or dossierbeheerder to create submission / when accepting submission
+    // Kanselarij & secretarie > when accepting submission
+    // minister & dossierbeheerder > when creating submission
+    if (!(await sessionHasRole(sessionUri, [ROLES.ADMIN, ROLES.KANSELARIJ, ROLES.SECRETARIE, ROLES.MINISTER, ROLES.KABINET_DOSSIERBEHEERDER]))) {
       return next({ message: 'You do not have the correct role to perform this operation', status: 401 });
     }
 
