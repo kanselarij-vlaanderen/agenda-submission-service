@@ -135,7 +135,6 @@ app.post('/meetings/:id/submit', async function(req, res, next) {
   try {
     const meetingId = req.params.id;
     const formallyOkStatus = req.body.formallyOkStatus;
-    const privateComment = req.body.privateComment;
 
     if (!meetingId) {
       return next({ message: 'Path parameter meeting ID was not set, cannot proceed', status: 400 });
@@ -250,7 +249,6 @@ app.post('/meetings/:id/submit', async function(req, res, next) {
       linkedPieces: subcase.linkedPieces,
       agendaActivity: agendaActivity.uri,
       treatment: treatment.uri,
-      privateComment: privateComment,
       isApproval: false,
     };
 
