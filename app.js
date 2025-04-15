@@ -277,8 +277,9 @@ app.post('/meetings/:id/submit', async function(req, res, next) {
       signFlows,
     });
 
+    let didReorder = false;
     if (agendaitem.agendaitemType !== CONCEPTS.AGENDA_ITEM_TYPES.ANNOUNCEMENT) {
-      await reorderAgendaitems(agenda.uri, agendaitem.agendaitemType);
+      didReorder = await reorderAgendaitems(agenda.uri, agendaitem.agendaitemType);
     }
 
     /**
@@ -295,6 +296,7 @@ app.post('/meetings/:id/submit', async function(req, res, next) {
       data: {
         type: 'agendaitems',
         id: agendaitem.id,
+        didReorder,
       }
     });
 
