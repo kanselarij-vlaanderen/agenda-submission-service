@@ -7,7 +7,7 @@ import { CONCEPTS, ROLES, URI_BASES } from './constants';
 import { getOpenMeetings, getMeetingForSubmission, isMeetingClosed, submitSubmissionOnMeeting } from './lib/meeting';
 import { isSubcaseOnAgenda } from './lib/subcase';
 import { getRelatedResources } from './lib/data-fetching';
-import { persistRecords } from './lib/data-persisting';
+import { persistAndVerifyRecords } from './lib/data-persisting';
 import { reorderAgendaitems } from './lib/agendaitem-order';
 import { getAgenda, getAgendasForSubcase, isApprovedAgenda } from './lib/agenda';
 import { isLoggedIn, sessionHasRole } from './lib/session';
@@ -266,7 +266,7 @@ app.post('/meetings/:id/submit', async function(req, res, next) {
       };
     }
 
-    await persistRecords({
+    await persistAndVerifyRecords({
       agendaitem,
       treatment,
       agendaActivity,
