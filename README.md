@@ -13,6 +13,7 @@ agenda-submission:
   image: kanselarij/agenda-submission-service
   environment:
     CACHE_CLEAR_TIMEOUT: 5000 # adds a timeout before sending a response, to give the cache time to clear.
+    SINGLE_PERSIST_QUERY: "true" # if the INSERT data should be 1 large insert intead of smaller inserts. Possible values: "yes", "true", true, "1", 1, "on" 
 ```
 
 Add rules to the dispatcher configuration file to dispatch requests to this service:
