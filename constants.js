@@ -43,6 +43,7 @@ const URI_BASES = {
 const GRAPHS = {
   KANSELARIJ: 'http://mu.semte.ch/graphs/organizations/kanselarij',
   SUBMISSION: 'http://mu.semte.ch/graphs/system/submissions',
+  PUBLIC: 'http://mu.semte.ch/graphs/public',
 }
 
 const ROLES = {
