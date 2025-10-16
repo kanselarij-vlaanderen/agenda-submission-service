@@ -287,14 +287,15 @@ app.post('/meetings/:id/submit', async function(req, res, next) {
     let didRestoreFromSubmission = false;
     if (agendaitem.agendaitemType !== CONCEPTS.AGENDA_ITEM_TYPES.ANNOUNCEMENT) {
       didReorder = await reorderAgendaitems(agenda.uri, agendaitem.agendaitemType);
-    }
 
-    if (submissionUri) {
-      const result = await getNewsItemAndDecisionFromSubmission(submissionUri);
       // if the submission had any saved newsitem or decision from sending back, link it to agendaitem
-      if (result?.newsItem || result?.decisionReport) {
-        await linkNewsItemAndDecisionFromSubmission(submissionUri, treatment.uri, decisionActivity.uri);
-        didRestoreFromSubmission = true;
+      // only on notas right now, announcements already have generated newsitems and almost never a decision report
+      if (submissionUri) {
+        const result = await getNewsItemAndDecisionFromSubmission(submissionUri);
+        if (result?.newsItem || result?.decisionReport) {
+          await linkNewsItemAndDecisionFromSubmission(submissionUri, treatment.uri, decisionActivity.uri);
+          didRestoreFromSubmission = true;
+        }
       }
     }
 
