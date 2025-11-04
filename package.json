@@ -1,6 +1,6 @@
 {
   "name": "agenda-submission-service",
-  "version": "1.13.0",
+  "version": "1.14.0",
   "description": "Microservice providing endpoints to sumbit a subcase for a meeting",
   "repository": {
     "type": "git",
