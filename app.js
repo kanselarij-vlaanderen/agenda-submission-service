@@ -145,7 +145,6 @@ app.post('/meetings/:id/submit-submission', async function(req, res, next) {
 
 app.post('/meetings/:id/submit', async function(req, res, next) {
   const subcaseUri = req.body.subcase;
-
   if (locks.has(subcaseUri)) {
     return next({ message: 'The subcase is currently being submitted, submission process cannot be started now', status: 409 });
   } else {
