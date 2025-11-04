@@ -11,6 +11,7 @@ import { persistAndVerifyRecords } from './lib/data-persisting';
 import { reorderAgendaitems } from './lib/agendaitem-order';
 import { getAgenda, getAgendasForSubcase, isApprovedAgenda } from './lib/agenda';
 import { isLoggedIn, sessionHasRole } from './lib/session';
+import { getPreliminaryDecisionResultCode } from './lib/agendaitem';
 
 const cacheClearTimeout = process.env.CACHE_CLEAR_TIMEOUT || 5000;
 
@@ -25,7 +26,7 @@ app.get('/', function(_req, res) {
 });
 
 app.get('/open-meetings', async function(req, res, next) {
-  const sessionUri = req.headers['mu-session-id']
+  const sessionUri = req.headers['mu-session-id'];
   if (!(await isLoggedIn(sessionUri))) {
     return next({ message: 'Unauthorized access to this endpoint is not permitted', status: 401 });
   }
@@ -34,6 +35,20 @@ app.get('/open-meetings', async function(req, res, next) {
     data: openMeetings.map(
       (meeting) => ({ id: meeting.id, type: 'meetings', attributes: { ...meeting } }))
   });
+});
+
+// get the preliminary decision result code for an agendaitem treatment
+app.get('/agendaitem/:id/preliminary-decision-result-code', async function(req, res, next) {
+  const sessionUri = req.headers['mu-session-id'];
+  if (!(await isLoggedIn(sessionUri))) {
+    return next({ message: 'Unauthorized access to this endpoint is not permitted', status: 401 });
+  }
+  const hasCorrectRole = await sessionHasRole(sessionUri, [ROLES.ADMIN, ROLES.MINISTER, ROLES.KABINET_DOSSIERBEHEERDER]);
+  if (!hasCorrectRole) {
+    return next({ message: 'Unauthorized access to this endpoint is not permitted', status: 403 });
+  }
+  const preliminaryDecisionResultCode = await getPreliminaryDecisionResultCode(req.params.id);
+  return res.status(200).send(preliminaryDecisionResultCode);
 });
 
 app.get('/subcases/:id/agendas', async function(req, res, next) {
