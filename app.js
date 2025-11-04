@@ -12,6 +12,11 @@ import { reorderAgendaitems } from './lib/agendaitem-order';
 import { getAgenda, getAgendasForSubcase, isApprovedAgenda } from './lib/agenda';
 import { isLoggedIn, sessionHasRole } from './lib/session';
 import { getPreliminaryDecisionResultCode } from './lib/agendaitem';
+import {
+  linkNewsItemAndDecisionToSubmission,
+  getNewsItemAndDecisionFromSubmission,
+  linkNewsItemAndDecisionFromSubmission
+} from './lib/submission';
 
 const cacheClearTimeout = process.env.CACHE_CLEAR_TIMEOUT || 5000;
 
@@ -140,7 +145,6 @@ app.post('/meetings/:id/submit-submission', async function(req, res, next) {
 
 app.post('/meetings/:id/submit', async function(req, res, next) {
   const subcaseUri = req.body.subcase;
-
   if (locks.has(subcaseUri)) {
     return next({ message: 'The subcase is currently being submitted, submission process cannot be started now', status: 409 });
   } else {
@@ -150,6 +154,7 @@ app.post('/meetings/:id/submit', async function(req, res, next) {
   try {
     const meetingId = req.params.id;
     const formallyOkStatus = req.body.formallyOkStatus;
+    const submissionUri = req.body.submission; // optional
 
     if (!meetingId) {
       return next({ message: 'Path parameter meeting ID was not set, cannot proceed', status: 400 });
@@ -293,8 +298,19 @@ app.post('/meetings/:id/submit', async function(req, res, next) {
     });
 
     let didReorder = false;
+    let didRestoreFromSubmission = false;
     if (agendaitem.agendaitemType !== CONCEPTS.AGENDA_ITEM_TYPES.ANNOUNCEMENT) {
       didReorder = await reorderAgendaitems(agenda.uri, agendaitem.agendaitemType);
+
+      // if the submission had any saved newsitem or decision from sending back, link it to agendaitem
+      // only on notas right now, announcements already have generated newsitems and almost never a decision report
+      if (submissionUri) {
+        const result = await getNewsItemAndDecisionFromSubmission(submissionUri);
+        if (result?.newsItem || result?.decisionReport) {
+          await linkNewsItemAndDecisionFromSubmission(submissionUri, treatment.uri, decisionActivity.uri);
+          didRestoreFromSubmission = true;
+        }
+      }
     }
 
     /**
@@ -312,6 +328,7 @@ app.post('/meetings/:id/submit', async function(req, res, next) {
         type: 'agendaitems',
         id: agendaitem.id,
         didReorder,
+        didRestoreFromSubmission,
       }
     });
 
@@ -354,6 +371,22 @@ app.post('/agendas/:id/reorder', async function (req, res, next) {
   } finally {
     locks.delete(agendaId);
   }
+});
+
+app.post('/submissions/:id/keep-draft-decision-and-news-item', async function (req, res, next) {
+  const submissionId = req.params.id;
+  const agendaitemUri = req.body.agendaitem;
+
+  if (!submissionId) {
+    return next({ message: 'Path parameter submission ID was not set, cannot proceed', status: 400 });
+  }
+  if (!agendaitemUri) {
+    return next({ message: 'Body does not contain a "agendaitem" field, cannot proceed', status: 400 });
+  }
+
+  await linkNewsItemAndDecisionToSubmission(agendaitemUri, submissionId);
+
+  return res.sendStatus(201);
 });
 
 app.use(errorHandler);
