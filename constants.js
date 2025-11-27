@@ -28,6 +28,9 @@ const CONCEPTS = {
   },
   AGENDA_STATUSES: {
     APPROVED: 'http://themis.vlaanderen.be/id/concept/agenda-status/fff6627e-4c96-4be1-b483-8fefcc6523ca',
+  },
+  NEWSLETTER_THEMES: {
+    ANNOUNCEMENT: "http://kanselarij.vo.data.gift/id/concept/thema-codes/59f3131e-cf44-4ee2-8258-70e3ac6303b1",
   }
 };
 
