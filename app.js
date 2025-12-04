@@ -283,6 +283,7 @@ app.post('/meetings/:id/submit', async function(req, res, next) {
         htmlContent: agendaitem.title,
         finished: true,
         inNewsletter: isTruthy(subcase.confidential?.at(0)) ? false : true,
+        themes: [CONCEPTS.NEWSLETTER_THEMES.ANNOUNCEMENT],
       };
     }
 
