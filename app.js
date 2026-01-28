@@ -31,73 +31,93 @@ app.get('/', function(_req, res) {
 });
 
 app.get('/open-meetings', async function(req, res, next) {
-  const sessionUri = req.headers['mu-session-id'];
-  if (!(await isLoggedIn(sessionUri))) {
-    return next({ message: 'Unauthorized access to this endpoint is not permitted', status: 401 });
+  try {
+    const sessionUri = req.headers['mu-session-id'];
+    if (!(await isLoggedIn(sessionUri))) {
+      return next({ message: 'Unauthorized access to this endpoint is not permitted', status: 401 });
+    }
+    const openMeetings = await getOpenMeetings();
+    return res.status(200).send({
+      data: openMeetings.map(
+        (meeting) => ({ id: meeting.id, type: 'meetings', attributes: { ...meeting } }))
+    });
+  } catch (error) {
+    console.trace(error);
+    return next(error);
   }
-  const openMeetings = await getOpenMeetings();
-  return res.status(200).send({
-    data: openMeetings.map(
-      (meeting) => ({ id: meeting.id, type: 'meetings', attributes: { ...meeting } }))
-  });
 });
 
 // get the preliminary decision result code for an agendaitem treatment
 app.get('/agendaitem/:id/preliminary-decision-result-code', async function(req, res, next) {
-  const sessionUri = req.headers['mu-session-id'];
-  if (!(await isLoggedIn(sessionUri))) {
-    return next({ message: 'Unauthorized access to this endpoint is not permitted', status: 401 });
+  try {
+    const sessionUri = req.headers['mu-session-id'];
+    if (!(await isLoggedIn(sessionUri))) {
+      return next({ message: 'Unauthorized access to this endpoint is not permitted', status: 401 });
+    }
+    const hasCorrectRole = await sessionHasRole(sessionUri, [ROLES.ADMIN, ROLES.MINISTER, ROLES.KABINET_DOSSIERBEHEERDER]);
+    if (!hasCorrectRole) {
+      return next({ message: 'Unauthorized access to this endpoint is not permitted', status: 403 });
+    }
+    const preliminaryDecisionResultCode = await getPreliminaryDecisionResultCode(req.params.id);
+    return res.status(200).send(preliminaryDecisionResultCode);
+  } catch (error) {
+    console.trace(error);
+    return next(error);
   }
-  const hasCorrectRole = await sessionHasRole(sessionUri, [ROLES.ADMIN, ROLES.MINISTER, ROLES.KABINET_DOSSIERBEHEERDER]);
-  if (!hasCorrectRole) {
-    return next({ message: 'Unauthorized access to this endpoint is not permitted', status: 403 });
-  }
-  const preliminaryDecisionResultCode = await getPreliminaryDecisionResultCode(req.params.id);
-  return res.status(200).send(preliminaryDecisionResultCode);
 });
 
 app.get('/subcases/:id/agendas', async function(req, res, next) {
-  const sessionUri = req.headers['mu-session-id']
-  if (!(await isLoggedIn(sessionUri))) {
-    return next({ message: 'Unauthorized access to this endpoint is not permitted', status: 401 });
+  try {
+    const sessionUri = req.headers['mu-session-id'];
+    if (!(await isLoggedIn(sessionUri))) {
+      return next({ message: 'Unauthorized access to this endpoint is not permitted', status: 401 });
+    }
+    const subcaseId = req.params.id;
+    if (!subcaseId) {
+      return next({ message: 'Path parameter subcase ID was not set, cannot proceed', status: 400 });
+    }
+    // Get all [meeting, agenda, agendaitem], both open and closed, related to this submission
+    // Used in the frontend to show when a subcase is on a future agenda, but only for cabibnets
+    // FYI: Admin is listed here in case of impersonation. the role would be admin but the data would come from a different role
+    const useSudo = await sessionHasRole(sessionUri, [ROLES.ADMIN, ROLES.MINISTER, ROLES.KABINET_DOSSIERBEHEERDER]);
+    const relatedAgendas = await getAgendasForSubcase(subcaseId, useSudo);
+  
+    for (const record of relatedAgendas) {
+      record.visible = !!(await getAgenda(record.agendaId));
+    }
+  
+    return res.status(200).send({
+      data: relatedAgendas.map(
+        (record) => ({ id: record.agendaId, type: 'agendas', attributes: { ...record } }))
+    });
+  } catch (error) {
+    console.trace(error);
+    return next(error);
   }
-  const subcaseId = req.params.id;
-  if (!subcaseId) {
-    return next({ message: 'Path parameter subcase ID was not set, cannot proceed', status: 400 });
-  }
-  // Get all [meeting, agenda, agendaitem], both open and closed, related to this submission
-  // Used in the frontend to show when a subcase is on a future agenda, but only for cabibnets
-  // FYI: Admin is listed here in case of impersonation. the role would be admin but the data would come from a different role
-  const useSudo = await sessionHasRole(sessionUri, [ROLES.ADMIN, ROLES.MINISTER, ROLES.KABINET_DOSSIERBEHEERDER]);
-  const relatedAgendas = await getAgendasForSubcase(subcaseId, useSudo);
-
-  for (const record of relatedAgendas) {
-    record.visible = !!(await getAgenda(record.agendaId));
-  }
-
-  return res.status(200).send({
-    data: relatedAgendas.map(
-      (record) => ({ id: record.agendaId, type: 'agendas', attributes: { ...record } }))
-  });
 });
 
 app.get('/submissions/:id/for-meeting', async function(req, res, next) {
-  const sessionUri = req.headers['mu-session-id']
-  if (!(await isLoggedIn(sessionUri))) {
-    return next({ message: 'Unauthorized access to this endpoint is not permitted', status: 401 });
+  try {
+    const sessionUri = req.headers['mu-session-id'];
+    if (!(await isLoggedIn(sessionUri))) {
+      return next({ message: 'Unauthorized access to this endpoint is not permitted', status: 401 });
+    }
+    const submissionId = req.params.id;
+    if (!submissionId) {
+      return next({ message: 'Path parameter submission ID was not set, cannot proceed', status: 400 });
+    }
+  
+    const meeting = await getMeetingForSubmission(submissionId);
+    if (meeting?.id) {
+      return res.status(200).send({
+        data: { id: meeting.id, type: 'meetings', attributes: meeting }
+      });
+    }
+    return next({ message: 'The submission is not submitted to any meeting, please contact the administrator', status: 404 });
+  } catch (error) {
+    console.trace(error);
+    return next(error);
   }
-  const submissionId = req.params.id;
-  if (!submissionId) {
-    return next({ message: 'Path parameter submission ID was not set, cannot proceed', status: 400 });
-  }
-
-  const meeting = await getMeetingForSubmission(submissionId);
-  if (meeting?.id) {
-    return res.status(200).send({
-      data: { id: meeting.id, type: 'meetings', attributes: meeting }
-    });
-  }
-  return next({ message: 'The submission is not submitted to any meeting, please contact the administrator', status: 404 });
 });
 
 app.post('/meetings/:id/submit-submission', async function(req, res, next) {
@@ -138,6 +158,9 @@ app.post('/meetings/:id/submit-submission', async function(req, res, next) {
     // cache issue, submission.meeting is null but data exists, cache reset works
     await new Promise((resolve) => setTimeout(resolve, 2000));
     return res.status(201).send();
+  } catch (error) {
+    console.trace(error);
+    return next(error);
   } finally {
     locks.delete(submissionUri);
   }
@@ -333,13 +356,14 @@ app.post('/meetings/:id/submit', async function(req, res, next) {
       }
     });
 
-  } catch (err) {
+  } catch (error) {
     // do we want to send an email here?
-    console.error(`*!!* submitting subcase ${subcaseUri} went wrong *!!*`, err);
+    console.error(`*!!* submitting subcase ${subcaseUri} went wrong *!!*`, error);
     const message = `Something went wrong. The subcase could not be fully submitted on the agenda.
     There may be data inconsistencies because of it.
     Please contact technical support before attempting again.
-    reason: ${err.message}`;
+    reason: ${error.message}`;
+    console.trace(error);
     return next({ message: message, status: 500 });
   } finally {
     locks.delete(subcaseUri);
@@ -369,25 +393,33 @@ app.post('/agendas/:id/reorder', async function (req, res, next) {
 
     await new Promise((resolve) => setTimeout(resolve, cacheClearTimeout));
     return res.sendStatus(201);
+  } catch (error) {
+    console.trace(error);
+    return next(error);
   } finally {
     locks.delete(agendaId);
   }
 });
 
 app.post('/submissions/:id/keep-draft-decision-and-news-item', async function (req, res, next) {
-  const submissionId = req.params.id;
-  const agendaitemUri = req.body.agendaitem;
-
-  if (!submissionId) {
-    return next({ message: 'Path parameter submission ID was not set, cannot proceed', status: 400 });
+  try {
+    const submissionId = req.params.id;
+    const agendaitemUri = req.body.agendaitem;
+  
+    if (!submissionId) {
+      return next({ message: 'Path parameter submission ID was not set, cannot proceed', status: 400 });
+    }
+    if (!agendaitemUri) {
+      return next({ message: 'Body does not contain a "agendaitem" field, cannot proceed', status: 400 });
+    }
+  
+    await linkNewsItemAndDecisionToSubmission(agendaitemUri, submissionId);
+  
+    return res.sendStatus(201);
+  } catch (error) {
+    console.trace(error);
+    return next(error);
   }
-  if (!agendaitemUri) {
-    return next({ message: 'Body does not contain a "agendaitem" field, cannot proceed', status: 400 });
-  }
-
-  await linkNewsItemAndDecisionToSubmission(agendaitemUri, submissionId);
-
-  return res.sendStatus(201);
 });
 
 app.use(errorHandler);
