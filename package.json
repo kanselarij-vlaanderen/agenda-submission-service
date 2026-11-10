@@ -7,8 +7,5 @@
     "url": "git+https://github.com/kanselarij-vlaanderen/agenda-submission-service.git"
   },
   "author": "redpencil.io",
-  "license": "MIT",
-  "dependencies": {
-    "@lblod/mu-auth-sudo": "^0.6.1"
-  }
+  "license": "MIT"
 }
